@@ -10,7 +10,6 @@ import {
   Param,
   Post,
   Put,
-  Query,
   Res,
   UploadedFile,
   UseInterceptors,
@@ -19,7 +18,7 @@ import { ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { NextFunction, Response } from 'express';
 import { AuthDto } from 'src/dtos/auth.dto';
 import { CreateProfileImageDto, CreateProfileImageResponseDto } from 'src/dtos/user-profile.dto';
-import { CreateUserDto, DeleteUserDto, UpdateUserDto, UserResponseDto } from 'src/dtos/user.dto';
+import { UpdateUserDto, UserResponseDto } from 'src/dtos/user.dto';
 import { ILoggerRepository } from 'src/interfaces/logger.interface';
 import { Auth, Authenticated, FileResponse } from 'src/middleware/auth.guard';
 import { FileUploadInterceptor, Route } from 'src/middleware/file-upload.interceptor';
@@ -37,14 +36,8 @@ export class UserController {
 
   @Get()
   @Authenticated()
-  getAllUsers(@Auth() auth: AuthDto, @Query('isAll') isAll: boolean): Promise<UserResponseDto[]> {
-    return this.service.getAll(auth, isAll);
-  }
-
-  @Post()
-  @Authenticated({ admin: true })
-  createUser(@Body() createUserDto: CreateUserDto): Promise<UserResponseDto> {
-    return this.service.create(createUserDto);
+  searchUsers(): Promise<UserResponseDto[]> {
+    return this.service.getAll();
   }
 
   @Get('me')
@@ -64,22 +57,6 @@ export class UserController {
   @Authenticated()
   deleteProfileImage(@Auth() auth: AuthDto): Promise<void> {
     return this.service.deleteProfileImage(auth);
-  }
-
-  @Delete(':id')
-  @Authenticated({ admin: true })
-  deleteUser(
-    @Auth() auth: AuthDto,
-    @Param() { id }: UUIDParamDto,
-    @Body() dto: DeleteUserDto,
-  ): Promise<UserResponseDto> {
-    return this.service.delete(auth, id, dto);
-  }
-
-  @Post(':id/restore')
-  @Authenticated({ admin: true })
-  restoreUser(@Auth() auth: AuthDto, @Param() { id }: UUIDParamDto): Promise<UserResponseDto> {
-    return this.service.restore(auth, id);
   }
 
   // TODO: replace with @Put(':id')

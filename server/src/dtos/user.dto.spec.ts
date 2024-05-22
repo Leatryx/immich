@@ -1,6 +1,6 @@
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
-import { CreateAdminDto, CreateUserDto, CreateUserOAuthDto, UpdateUserDto } from 'src/dtos/user.dto';
+import { CreateAdminDto, CreateUserOAuthDto, UpdateUserDto, UserAdminCreateDto } from 'src/dtos/user.dto';
 
 describe('update user DTO', () => {
   it('should allow emails without a tld', async () => {
@@ -18,22 +18,22 @@ describe('update user DTO', () => {
 
 describe('create user DTO', () => {
   it('validates the email', async () => {
-    const params: Partial<CreateUserDto> = {
+    const params: Partial<UserAdminCreateDto> = {
       email: undefined,
       password: 'password',
       name: 'name',
     };
-    let dto: CreateUserDto = plainToInstance(CreateUserDto, params);
+    let dto: UserAdminCreateDto = plainToInstance(UserAdminCreateDto, params);
     let errors = await validate(dto);
     expect(errors).toHaveLength(1);
 
     params.email = 'invalid email';
-    dto = plainToInstance(CreateUserDto, params);
+    dto = plainToInstance(UserAdminCreateDto, params);
     errors = await validate(dto);
     expect(errors).toHaveLength(1);
 
     params.email = 'valid@email.com';
-    dto = plainToInstance(CreateUserDto, params);
+    dto = plainToInstance(UserAdminCreateDto, params);
     errors = await validate(dto);
     expect(errors).toHaveLength(0);
   });
@@ -41,7 +41,7 @@ describe('create user DTO', () => {
   it('should allow emails without a tld', async () => {
     const someEmail = 'test@test';
 
-    const dto = plainToInstance(CreateUserDto, {
+    const dto = plainToInstance(UserAdminCreateDto, {
       email: someEmail,
       password: 'some password',
       name: 'some name',

@@ -288,8 +288,8 @@ class ApiClient {
           return CreateProfileImageResponseDto.fromJson(value);
         case 'CreateTagDto':
           return CreateTagDto.fromJson(value);
-        case 'CreateUserDto':
-          return CreateUserDto.fromJson(value);
+        case 'UserAdminCreateDto':
+          return UserAdminCreateDto.fromJson(value);
         case 'DeleteUserDto':
           return DeleteUserDto.fromJson(value);
         case 'DownloadArchiveInfo':

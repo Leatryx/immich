@@ -11,20 +11,16 @@ describe('/users', () => {
 
   let admin: LoginResponseDto;
   let deletedUser: LoginResponseDto;
-  let userToDelete: LoginResponseDto;
-  let userToHardDelete: LoginResponseDto;
   let nonAdmin: LoginResponseDto;
 
   beforeAll(async () => {
     await utils.resetDatabase();
     admin = await utils.adminSetup({ onboarding: false });
 
-    [websocket, deletedUser, nonAdmin, userToDelete, userToHardDelete] = await Promise.all([
+    [websocket, deletedUser, nonAdmin] = await Promise.all([
       utils.connectWebsocket(admin.accessToken),
       utils.userSetup(admin.accessToken, createUserDto.user1),
       utils.userSetup(admin.accessToken, createUserDto.user2),
-      utils.userSetup(admin.accessToken, createUserDto.user3),
-      utils.userSetup(admin.accessToken, createUserDto.user4),
     ]);
 
     await deleteUser({ id: deletedUser.userId, deleteUserDto: {} }, { headers: asBearerAuth(admin.accessToken) });
@@ -80,14 +76,12 @@ describe('/users', () => {
         .set('Authorization', `Bearer ${admin.accessToken}`);
 
       expect(status).toBe(200);
-      expect(body).toHaveLength(5);
+      expect(body).toHaveLength(3);
       expect(body).toEqual(
         expect.arrayContaining([
           expect.objectContaining({ email: 'admin@immich.cloud' }),
           expect.objectContaining({ email: 'user1@immich.cloud' }),
           expect.objectContaining({ email: 'user2@immich.cloud' }),
-          expect.objectContaining({ email: 'user3@immich.cloud' }),
-          expect.objectContaining({ email: 'user4@immich.cloud' }),
         ]),
       );
     });
@@ -125,97 +119,6 @@ describe('/users', () => {
         id: admin.userId,
         email: 'admin@immich.cloud',
       });
-    });
-  });
-
-  describe('POST /users', () => {
-    it('should require authentication', async () => {
-      const { status, body } = await request(app).post(`/users`).send(createUserDto.user1);
-      expect(status).toBe(401);
-      expect(body).toEqual(errorDto.unauthorized);
-    });
-
-    for (const key of Object.keys(createUserDto.user1)) {
-      it(`should not allow null ${key}`, async () => {
-        const { status, body } = await request(app)
-          .post(`/users`)
-          .set('Authorization', `Bearer ${admin.accessToken}`)
-          .send({ ...createUserDto.user1, [key]: null });
-        expect(status).toBe(400);
-        expect(body).toEqual(errorDto.badRequest());
-      });
-    }
-
-    it('should ignore `isAdmin`', async () => {
-      const { status, body } = await request(app)
-        .post(`/users`)
-        .send({
-          isAdmin: true,
-          email: 'user5@immich.cloud',
-          password: 'password123',
-          name: 'Immich',
-        })
-        .set('Authorization', `Bearer ${admin.accessToken}`);
-      expect(body).toMatchObject({
-        email: 'user5@immich.cloud',
-        isAdmin: false,
-        shouldChangePassword: true,
-      });
-      expect(status).toBe(201);
-    });
-
-    it('should create a user without memories enabled', async () => {
-      const { status, body } = await request(app)
-        .post(`/users`)
-        .send({
-          email: 'no-memories@immich.cloud',
-          password: 'Password123',
-          name: 'No Memories',
-          memoriesEnabled: false,
-        })
-        .set('Authorization', `Bearer ${admin.accessToken}`);
-      expect(body).toMatchObject({
-        email: 'no-memories@immich.cloud',
-        memoriesEnabled: false,
-      });
-      expect(status).toBe(201);
-    });
-  });
-
-  describe('DELETE /users/:id', () => {
-    it('should require authentication', async () => {
-      const { status, body } = await request(app).delete(`/users/${userToDelete.userId}`);
-      expect(status).toBe(401);
-      expect(body).toEqual(errorDto.unauthorized);
-    });
-
-    it('should delete user', async () => {
-      const { status, body } = await request(app)
-        .delete(`/users/${userToDelete.userId}`)
-        .set('Authorization', `Bearer ${admin.accessToken}`);
-
-      expect(status).toBe(200);
-      expect(body).toMatchObject({
-        id: userToDelete.userId,
-        updatedAt: expect.any(String),
-        deletedAt: expect.any(String),
-      });
-    });
-
-    it('should hard delete user', async () => {
-      const { status, body } = await request(app)
-        .delete(`/users/${userToHardDelete.userId}`)
-        .send({ force: true })
-        .set('Authorization', `Bearer ${admin.accessToken}`);
-
-      expect(status).toBe(200);
-      expect(body).toMatchObject({
-        id: userToHardDelete.userId,
-        updatedAt: expect.any(String),
-        deletedAt: expect.any(String),
-      });
-
-      await utils.waitForWebsocketEvent({ event: 'userDelete', id: userToHardDelete.userId, timeout: 5000 });
     });
   });
 

@@ -1,13 +1,13 @@
-import { BadRequestException, ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { DateTime } from 'luxon';
 import { StorageCore, StorageFolder } from 'src/cores/storage.core';
 import { SystemConfigCore } from 'src/cores/system-config.core';
 import { UserCore } from 'src/cores/user.core';
 import { AuthDto } from 'src/dtos/auth.dto';
 import { CreateProfileImageResponseDto, mapCreateProfileImageResponse } from 'src/dtos/user-profile.dto';
-import { CreateUserDto, DeleteUserDto, UpdateUserDto, UserResponseDto, mapUser } from 'src/dtos/user.dto';
+import { UpdateUserDto, UserAdminResponseDto, UserResponseDto, mapUser } from 'src/dtos/user.dto';
 import { UserMetadataKey } from 'src/entities/user-metadata.entity';
-import { UserEntity, UserStatus } from 'src/entities/user.entity';
+import { UserEntity } from 'src/entities/user.entity';
 import { IAlbumRepository } from 'src/interfaces/album.interface';
 import { ICryptoRepository } from 'src/interfaces/crypto.interface';
 import { IEntityJob, IJobRepository, JobName, JobStatus } from 'src/interfaces/job.interface';
@@ -44,8 +44,8 @@ export class UserService {
     return users.map((user) => mapUser(user));
   }
 
-  async getAll(auth: AuthDto, isAll: boolean): Promise<UserResponseDto[]> {
-    const users = await this.userRepository.getList({ withDeleted: !isAll });
+  async getAll(): Promise<UserAdminResponseDto[]> {
+    const users = await this.userRepository.getList();
     return users.map((user) => mapUser(user));
   }
 
@@ -60,27 +60,6 @@ export class UserService {
 
   getMe(auth: AuthDto): Promise<UserResponseDto> {
     return this.findOrFail(auth.user.id, {}).then(mapUser);
-  }
-
-  async create(dto: CreateUserDto): Promise<UserResponseDto> {
-    const { memoriesEnabled, notify, ...rest } = dto;
-    let user = await this.userCore.createUser(rest);
-
-    // TODO remove and replace with entire dto.preferences config
-    if (memoriesEnabled === false) {
-      await this.userRepository.upsertMetadata(user.id, {
-        key: UserMetadataKey.PREFERENCES,
-        value: { memories: { enabled: false } },
-      });
-
-      user = await this.findOrFail(user.id, {});
-    }
-
-    const tempPassword = user.shouldChangePassword ? rest.password : undefined;
-    if (notify) {
-      await this.jobRepository.queue({ name: JobName.NOTIFY_SIGNUP, data: { id: user.id, tempPassword } });
-    }
-    return mapUser(user);
   }
 
   async update(auth: AuthDto, dto: UpdateUserDto): Promise<UserResponseDto> {
@@ -112,31 +91,6 @@ export class UserService {
     const updatedUser = await this.userCore.updateUser(auth.user, dto.id, dto);
 
     return mapUser(updatedUser);
-  }
-
-  async delete(auth: AuthDto, id: string, dto: DeleteUserDto): Promise<UserResponseDto> {
-    const { force } = dto;
-    const { isAdmin } = await this.findOrFail(id, {});
-    if (isAdmin) {
-      throw new ForbiddenException('Cannot delete admin user');
-    }
-
-    await this.albumRepository.softDeleteAll(id);
-
-    const status = force ? UserStatus.REMOVING : UserStatus.DELETED;
-    const user = await this.userRepository.update(id, { status, deletedAt: new Date() });
-
-    if (force) {
-      await this.jobRepository.queue({ name: JobName.USER_DELETION, data: { id: user.id, force } });
-    }
-
-    return mapUser(user);
-  }
-
-  async restore(auth: AuthDto, id: string): Promise<UserResponseDto> {
-    await this.findOrFail(id, { withDeleted: true });
-    await this.albumRepository.restoreAll(id);
-    return this.userRepository.update(id, { deletedAt: null, status: UserStatus.ACTIVE }).then(mapUser);
   }
 
   async createProfileImage(auth: AuthDto, fileInfo: Express.Multer.File): Promise<CreateProfileImageResponseDto> {

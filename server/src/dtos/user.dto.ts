@@ -1,45 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsBoolean, IsEmail, IsEnum, IsNotEmpty, IsNumber, IsPositive, IsString, IsUUID } from 'class-validator';
+import { IsEmail, IsEnum, IsNotEmpty, IsNumber, IsPositive, IsString, IsUUID } from 'class-validator';
 import { UserAvatarColor } from 'src/entities/user-metadata.entity';
 import { UserEntity, UserStatus } from 'src/entities/user.entity';
 import { getPreferences } from 'src/utils/preferences';
 import { Optional, ValidateBoolean, toEmail, toSanitized } from 'src/validation';
-
-export class CreateUserDto {
-  @IsEmail({ require_tld: false })
-  @Transform(toEmail)
-  email!: string;
-
-  @IsNotEmpty()
-  @IsString()
-  password!: string;
-
-  @IsNotEmpty()
-  @IsString()
-  name!: string;
-
-  @Optional({ nullable: true })
-  @IsString()
-  @Transform(toSanitized)
-  storageLabel?: string | null;
-
-  @ValidateBoolean({ optional: true })
-  memoriesEnabled?: boolean;
-
-  @Optional({ nullable: true })
-  @IsNumber()
-  @IsPositive()
-  @ApiProperty({ type: 'integer', format: 'int64' })
-  quotaSizeInBytes?: number | null;
-
-  @ValidateBoolean({ optional: true })
-  shouldChangePassword?: boolean;
-
-  @Optional()
-  @IsBoolean()
-  notify?: boolean;
-}
 
 export class CreateAdminDto {
   @IsNotEmpty()
@@ -65,11 +30,6 @@ export class CreateUserOAuthDto {
   oauthId!: string;
 
   name?: string;
-}
-
-export class DeleteUserDto {
-  @ValidateBoolean({ optional: true })
-  force?: boolean;
 }
 
 export class UpdateUserDto {
@@ -146,6 +106,10 @@ export class UserResponseDto extends UserDto {
   status!: string;
 }
 
+export class UserAdminResponseDto extends UserResponseDto {
+  //
+}
+
 export const mapSimpleUser = (entity: UserEntity): UserDto => {
   return {
     id: entity.id,
@@ -171,4 +135,8 @@ export function mapUser(entity: UserEntity): UserResponseDto {
     quotaUsageInBytes: entity.quotaUsageInBytes,
     status: entity.status,
   };
+}
+
+export function mapUserAdmin(entity: UserEntity): UserAdminResponseDto {
+  return mapUser(entity);
 }

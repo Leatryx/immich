@@ -68,18 +68,18 @@ class UserApi {
     // FormatException when trying to decode an empty string.
     if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
       return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'CreateProfileImageResponseDto',) as CreateProfileImageResponseDto;
-    
+
     }
     return null;
   }
 
-  /// Performs an HTTP 'POST /users' operation and returns the [Response].
+  /// Performs an HTTP 'POST /admin/users' operation and returns the [Response].
   /// Parameters:
   ///
-  /// * [CreateUserDto] createUserDto (required):
-  Future<Response> createUserWithHttpInfo(CreateUserDto createUserDto,) async {
+  /// * [UserAdminCreateDto] createUserDto (required):
+  Future<Response> createUserWithHttpInfo(UserAdminCreateDto createUserDto,) async {
     // ignore: prefer_const_declarations
-    final path = r'/users';
+    final path = r'/admin/users';
 
     // ignore: prefer_final_locals
     Object? postBody = createUserDto;
@@ -104,8 +104,8 @@ class UserApi {
 
   /// Parameters:
   ///
-  /// * [CreateUserDto] createUserDto (required):
-  Future<UserResponseDto?> createUser(CreateUserDto createUserDto,) async {
+  /// * [UserAdminCreateDto] createUserDto (required):
+  Future<UserResponseDto?> createUser(UserAdminCreateDto createUserDto,) async {
     final response = await createUserWithHttpInfo(createUserDto,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
@@ -115,7 +115,7 @@ class UserApi {
     // FormatException when trying to decode an empty string.
     if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
       return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'UserResponseDto',) as UserResponseDto;
-    
+
     }
     return null;
   }
@@ -153,7 +153,7 @@ class UserApi {
     }
   }
 
-  /// Performs an HTTP 'DELETE /users/{id}' operation and returns the [Response].
+  /// Performs an HTTP 'DELETE /admin/users/{id}' operation and returns the [Response].
   /// Parameters:
   ///
   /// * [String] id (required):
@@ -161,7 +161,7 @@ class UserApi {
   /// * [DeleteUserDto] deleteUserDto (required):
   Future<Response> deleteUserWithHttpInfo(String id, DeleteUserDto deleteUserDto,) async {
     // ignore: prefer_const_declarations
-    final path = r'/users/{id}'
+    final path = r'/admin/users/{id}'
       .replaceAll('{id}', id);
 
     // ignore: prefer_final_locals
@@ -200,7 +200,7 @@ class UserApi {
     // FormatException when trying to decode an empty string.
     if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
       return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'UserResponseDto',) as UserResponseDto;
-    
+
     }
     return null;
   }
@@ -293,7 +293,7 @@ class UserApi {
     // FormatException when trying to decode an empty string.
     if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
       return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'UserResponseDto',) as UserResponseDto;
-    
+
     }
     return null;
   }
@@ -341,7 +341,7 @@ class UserApi {
     // FormatException when trying to decode an empty string.
     if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
       return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'MultipartFile',) as MultipartFile;
-    
+
     }
     return null;
   }
@@ -389,18 +389,18 @@ class UserApi {
     // FormatException when trying to decode an empty string.
     if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
       return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'UserResponseDto',) as UserResponseDto;
-    
+
     }
     return null;
   }
 
-  /// Performs an HTTP 'POST /users/{id}/restore' operation and returns the [Response].
+  /// Performs an HTTP 'POST /admin/users/{id}/restore' operation and returns the [Response].
   /// Parameters:
   ///
   /// * [String] id (required):
   Future<Response> restoreUserWithHttpInfo(String id,) async {
     // ignore: prefer_const_declarations
-    final path = r'/users/{id}/restore'
+    final path = r'/admin/users/{id}/restore'
       .replaceAll('{id}', id);
 
     // ignore: prefer_final_locals
@@ -437,7 +437,7 @@ class UserApi {
     // FormatException when trying to decode an empty string.
     if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
       return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'UserResponseDto',) as UserResponseDto;
-    
+
     }
     return null;
   }
@@ -484,7 +484,7 @@ class UserApi {
     // FormatException when trying to decode an empty string.
     if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
       return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'UserResponseDto',) as UserResponseDto;
-    
+
     }
     return null;
   }
